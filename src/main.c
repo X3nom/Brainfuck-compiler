@@ -13,7 +13,7 @@ typedef struct{
     uint32_t *stack;
     int len;
     int allocated_len;
-} stack_t;
+} int_stack_t;
 
 stack_t new_stack(){
     stack_t stack;
