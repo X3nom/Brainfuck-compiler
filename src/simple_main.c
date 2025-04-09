@@ -9,6 +9,38 @@
 #define ERROR_EXIT(_exit_code, ...) {perror(__VA_ARGS__); exit(_exit_code);}
 
 
+typedef struct{
+    uint32_t *stack;
+    int len;
+    int allocated_len;
+} stack_t;
+
+stack_t new_stack(){
+    stack_t stack;
+    stack.len = 0;
+    stack.allocated_len = 32;
+    stack.stack = malloc(stack.allocated_len * sizeof(uint32_t));
+    if(stack.stack == NULL){perror("realloc failed\n"), exit(1);}
+    return stack;
+}
+
+void stack_push(stack_t *stack, int32_t val){
+    stack->len++;
+    if(stack->len >= stack->allocated_len){
+        stack->allocated_len += 32;
+        stack->stack = realloc(stack->stack, stack->allocated_len * sizeof(int32_t));
+        if(stack->stack == NULL){perror("realloc failed\n"), exit(1);}
+    }
+    stack->stack[stack->len-1] = val;
+}
+
+int32_t stack_pop(stack_t *stack){
+    stack->len--;
+    return stack->stack[stack->len];
+}
+
+
+
 
 
 void write_head(FILE *output, uint32_t memsize){
@@ -17,7 +49,9 @@ void write_head(FILE *output, uint32_t memsize){
 section .bss \n\
     mem resb %u \n\
 section .data \n\
-    mem_len db %u \n\
+    mem_len equ %u \n\
+section .text \n\
+    global _start \n\
 %s",
     memsize,
     memsize,
@@ -31,6 +65,7 @@ void write_exit(FILE *output){
 
 
 void write_code(FILE *output, FILE *input){
+    stack_t rb_stack = new_stack();
     uint32_t bracketpair_id = 0;
     char c;
     for(c = getc(input); c != EOF; c = getc(input)){
@@ -58,11 +93,12 @@ void write_code(FILE *output, FILE *input){
 
             case '[':
                 fprintf(output, "lb%u:\ncmp al, 0\njz rb%u\n", bracketpair_id, bracketpair_id);
+                stack_push(&rb_stack, bracketpair_id);
                 bracketpair_id++;
                 break;
             case ']':
-                bracketpair_id--;
-                fprintf(output, "rb%u:\ncmp al, 0\njnz lb%u\n", bracketpair_id, bracketpair_id);
+                int32_t bracket_id = stack_pop(&rb_stack);
+                fprintf(output, "rb%u:\ncmp al, 0\njnz lb%u\n", bracket_id, bracket_id);
                 break;
         }
     }
@@ -76,7 +112,7 @@ int main(int argc, char *argv[]){
     char *input_src_path = NULL;
     char *output_path = "./a.asm";
 
-    uint32_t memsize = 0xffff;
+    uint32_t memsize = 0xfff;
 
     // Parse options ==============================
     int opt;

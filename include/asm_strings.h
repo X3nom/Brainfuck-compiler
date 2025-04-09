@@ -1,4 +1,4 @@
-#pragma ONCE
+#pragma once
 
 #define BF_ASM_EXIT "\
 _exit: \n\
@@ -9,8 +9,9 @@ _exit: \n\
 
 #define BF_ASM_DOT "\
 dot_operator: \n\
+    mov [mem + rbx], al \n\
     push rax \n\
-    mov rsi, rbx \n\
+    lea rsi, [mem + rbx] \n\
     mov rax, 1 \n\
     mov rdi, 1 \n\
     mov rdx, 1 \n\
@@ -35,9 +36,9 @@ comma_operator: \n\
 left_operator: \n\
     mov [mem + rbx], al \n\
     dec rbx \n\
-    jnz left_operator_end \n\
+    jc left_operator_end \n\
     ; wrap around to end \n\
-    mov rbx, [mem_len] \n\
+    mov rbx, mem_len \n\
     dec rbx \n\
     left_operator_end: \n\
     movzx rax, byte [mem + rbx] \n\
@@ -48,7 +49,7 @@ left_operator: \n\
 right_operator: \n\
     mov [mem + rbx], al \n\
     inc rbx \n\
-    cmp rbx, [mem_len] \n\
+    cmp rbx, mem_len \n\
     jl right_operator_end \n\
     ; wrap around to 0 \n\
     xor rbx, rbx \n\
@@ -57,11 +58,12 @@ right_operator: \n\
     ret \n\
 "
 
-#define BF_ASM_START "\
-section .text \n\
-    global _start \n\
-_start:\n"
 
+#define BF_ASM_START "\
+_start:\n\
+xor rax, rax\n\
+xor rbx, rbx\n\
+"
 
 #define BF_ASM_HEAD_FULL \
     BF_ASM_EXIT \
