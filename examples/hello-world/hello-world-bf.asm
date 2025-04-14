@@ -4,11 +4,7 @@ section .data
     mem_len equ 4095 
 section .text 
     global _start 
-_exit: 
-    mov rax, 60         ; syscall number for exit 
-    xor rdi, rdi        ; exit code 0 
-    syscall 
-dot_operator: 
+write: 
     mov [mem + rbx], al 
     push rax 
     lea rsi, [mem + rbx] 
@@ -18,116 +14,73 @@ dot_operator:
     syscall 
     pop rax 
     ret 
-comma_operator: 
-    lea rsi, [mem + rbx] 
-    mov rax, 0 
-    mov rdi, 0 
-    mov rdx, 1 
-    syscall 
-    movzx rax, byte [mem + rbx] 
-    ret 
-left_operator: 
+
+left:
     mov [mem + rbx], al 
-    dec rbx 
-    jc left_operator_end 
+sub rbx, 1
+jnc left_operator_end 
     ; wrap around to end 
     mov rbx, mem_len 
     dec rbx 
     left_operator_end: 
     movzx rax, byte [mem + rbx] 
     ret 
-right_operator: 
+
+right:
     mov [mem + rbx], al 
-    inc rbx 
-    cmp rbx, mem_len 
+add rbx, 1
+cmp rbx, mem_len 
     jl right_operator_end 
     ; wrap around to 0 
     xor rbx, rbx 
     right_operator_end: 
     movzx rax, byte [mem + rbx] 
     ret 
+
+_exit: 
+    mov rax, 60         ; syscall number for exit 
+    xor rdi, rdi        ; exit code 0 
+    syscall 
+
 _start:
 xor rax, rax
 xor rbx, rbx
-inc al
-inc al
-inc al
-inc al
-inc al
-inc al
-inc al
-lb0:
+
+add rax, 7
 cmp al, 0
-jz rb0
-dec al
-call right_operator
-inc al
-inc al
-inc al
-inc al
-inc al
-inc al
-inc al
-inc al
-inc al
-inc al
-call left_operator
-rb0:
+je le0
+ls0:
+dec rax
+call right
+add rax, 10
+call left
 cmp al, 0
-jnz lb0
-call right_operator
-inc al
-inc al
-call dot_operator
-call left_operator
-inc al
-inc al
-inc al
-lb1:
+jnz ls0
+le0:
+call right
+add rax, 2
+call write
+call left
+add rax, 3
 cmp al, 0
-jz rb1
-dec al
-call right_operator
-inc al
-inc al
-inc al
-inc al
-inc al
-inc al
-inc al
-inc al
-inc al
-inc al
-call left_operator
-rb1:
+je le1
+ls1:
+dec rax
+call right
+add rax, 10
+call left
 cmp al, 0
-jnz lb1
-call right_operator
-dec al
-call dot_operator
-inc al
-inc al
-inc al
-inc al
-inc al
-inc al
-inc al
-call dot_operator
-call dot_operator
-inc al
-inc al
-inc al
-call dot_operator
-call right_operator
-inc al
-inc al
-inc al
-inc al
-inc al
-inc al
-inc al
-inc al
-inc al
-inc al
-call dot_operator
-call _exit
+jnz ls1
+le1:
+call right
+dec rax
+call write
+add rax, 7
+call write
+call write
+add rax, 3
+call write
+call right
+add rax, 10
+call write
+jmp _exit

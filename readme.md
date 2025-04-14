@@ -12,3 +12,10 @@ $ bfx86 input.bf -o output.asm
 $ nasm output.asm -o output.o -f elf64
 $ ld ./output.o -o executable_output
 ```
+
+
+
+
+<br><br><br><br>
+> Notice to the reader:
+> Evil macro magic in source code of this project may cause permanent eye damage.

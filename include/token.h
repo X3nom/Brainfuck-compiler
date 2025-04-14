@@ -1,20 +1,13 @@
 #pragma once
 #include <stack.h>
+#include <token_types.h>
 
-typedef enum BaseTokenType{
-    BT_PLUS,
-    BT_MINUS,
-    
-    BT_LEFT,
-    BT_RIGHT,
-
-    BT_DOT,
-    BT_COMMA,
-
-    BT_LBR,
-    BT_RBR,
-} BaseTokenType;
-
+// Evil macro magic that generates the enum
+#define X(_x) _x,
+typedef enum TokenType{
+    TOKEN_TYPES_LIST
+} TokenType;
+#undef X
 
 
 /*
@@ -23,11 +16,11 @@ typedef enum BaseTokenType{
 - other operators -> operator multiplier 
 */
 typedef struct{
-    BaseTokenType token_type;
+    TokenType token_type;
     int n;
-} BaseToken;
+} Token;
 
-BaseToken BaseToken_new(BaseTokenType type, int count);
+Token Token_new(TokenType type, int n);
 
 
-GENERATE_STACK_WRAPPER(BaseToken, BaseTokenString);
+GENERATE_STACK_WRAPPER(Token, TokenString);
